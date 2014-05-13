@@ -10,20 +10,15 @@ from gevent.server import StreamServer
 from gevent import socket, Timeout, sleep
 
 def socket_recv(socket_obj, recv_len):
-    """循环接收数据，直到接到到所需要的字节数为止
+    def _socket_recv(recv_len):
+        while 1:
+            msg = socket_obj.recv(recv_len)
+            recv_len -= len(msg)
+            yield msg
+            if recv_len <= 0:
+                break
 
-    防止在大流量情况下socket_obj.recv接收的字节数小于所需要的字节数.
-
-    """
-    recv_msg = ''
-    while 1:
-        temp_len = recv_len - len(recv_msg)
-        if temp_len <= 0:
-            return recv_msg
-        else:
-            msg = socket_obj.recv(temp_len)
-            if msg:
-                recv_msg += msg
+    return "".join(_socket_recv(recv_len))
 
 
 class Server(object):
